@@ -25,7 +25,7 @@ namespace dai {
  */
 struct DeviceInfo {
     DeviceInfo() = default;
-    DeviceInfo(std::string name, std::string mxid, XLinkDeviceState_t state, XLinkProtocol_t protocol, XLinkPlatform_t platform, XLinkError_t status);
+    DeviceInfo(std::string name, std::string mxid, std::string interface, XLinkDeviceState_t state, XLinkProtocol_t protocol, XLinkPlatform_t platform, XLinkError_t status);
     /**
      * Creates a DeviceInfo by checking whether supplied parameter is a MXID or IP/USB name
      * @param mxidOrName Either MXID, IP Address or USB port name
@@ -38,6 +38,7 @@ struct DeviceInfo {
 
     std::string name = "";
     std::string mxid = "";
+    std::string interface = "";
     XLinkDeviceState_t state = X_LINK_ANY_STATE;
     XLinkProtocol_t protocol = X_LINK_ANY_PROTOCOL;
     XLinkPlatform_t platform = X_LINK_ANY_PLATFORM;
@@ -56,16 +57,18 @@ class XLinkConnection {
      *
      * @param state State which the devices should be in
      * @param skipInvalidDevices whether or not to skip over devices that cannot be successfully communicated with
+     * @param interface Network interface (optional)
      * @returns Vector of connected device information
      */
-    static std::vector<DeviceInfo> getAllConnectedDevices(XLinkDeviceState_t state = X_LINK_ANY_STATE, bool skipInvalidDevices = true);
+    static std::vector<DeviceInfo> getAllConnectedDevices(XLinkDeviceState_t state = X_LINK_ANY_STATE, bool skipInvalidDevices = true, std::string interface = "");
 
     /**
      * Returns information of first device with given state
      * @param state State which the device should be in
+     * @param interface Network interface (optional)
      * @returns Device information
      */
-    static std::tuple<bool, DeviceInfo> getFirstDevice(XLinkDeviceState_t state = X_LINK_ANY_STATE, bool skipInvalidDevices = true);
+    static std::tuple<bool, DeviceInfo> getFirstDevice(XLinkDeviceState_t state = X_LINK_ANY_STATE, bool skipInvalidDevices = true, std::string interface = "");
 
     /**
      * Finds a device by MX ID. Example: 14442C10D13EABCE00

@@ -106,9 +106,10 @@ class DeviceBase {
 
     /**
      * Gets first available device. Device can be either in XLINK_UNBOOTED or XLINK_BOOTLOADER state
+     * @param interface Network interface (optional)
      * @returns Tuple of bool and DeviceInfo. Bool specifies if device was found. DeviceInfo specifies the found device
      */
-    static std::tuple<bool, DeviceInfo> getFirstAvailableDevice(bool skipInvalidDevice = true);
+    static std::tuple<bool, DeviceInfo> getFirstAvailableDevice(bool skipInvalidDevice = true, std::string interface = "");
 
     /**
      * Finds a device by MX ID. Example: 14442C10D13EABCE00
@@ -119,17 +120,19 @@ class DeviceBase {
 
     /**
      * Returns all available devices
+     * @param interface Network interface (optional)
      * @returns Vector of available devices
      */
-    static std::vector<DeviceInfo> getAllAvailableDevices();
+    static std::vector<DeviceInfo> getAllAvailableDevices(std::string interface = "");
 
     /**
      * Returns information of all connected devices.
      * The devices could be both connectable as well as already connected to devices.
      *
+     * @param interface Network interface (optional)
      * @returns Vector of connected device information
      */
-    static std::vector<DeviceInfo> getAllConnectedDevices();
+    static std::vector<DeviceInfo> getAllConnectedDevices(std::string interface = "");
 
     /**
      * Gets device firmware binary for a specific OpenVINO version

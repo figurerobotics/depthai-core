@@ -29,14 +29,15 @@ namespace dai {
 DeviceInfo::DeviceInfo(const deviceDesc_t& desc) {
     name = std::string(desc.name);
     mxid = std::string(desc.mxid);
+    interface = std::string(desc.interface);
     state = desc.state;
     protocol = desc.protocol;
     platform = desc.platform;
     status = desc.status;
 }
 
-DeviceInfo::DeviceInfo(std::string name, std::string mxid, XLinkDeviceState_t state, XLinkProtocol_t protocol, XLinkPlatform_t platform, XLinkError_t status)
-    : name(std::move(name)), mxid(std::move(mxid)), state(state), protocol(protocol), platform(platform), status(status) {}
+DeviceInfo::DeviceInfo(std::string name, std::string mxid, std::string interface, XLinkDeviceState_t state, XLinkProtocol_t protocol, XLinkPlatform_t platform, XLinkError_t status)
+    : name(std::move(name)), mxid(std::move(mxid)), interface(std::move(interface)), state(state), protocol(protocol), platform(platform), status(status) {}
 
 DeviceInfo::DeviceInfo(std::string mxidOrName) {
     // Parse parameter and set to ip if any dots found
@@ -61,6 +62,8 @@ deviceDesc_t DeviceInfo::getXLinkDeviceDesc() const {
     strncpy(desc.mxid, mxid.c_str(), sizeof(desc.mxid) - 1);
     desc.name[sizeof(desc.name) - 1] = 0;
     strncpy(desc.name, name.c_str(), sizeof(desc.name) - 1);
+    desc.interface[sizeof(desc.interface) - 1] = 0;
+    strncpy(desc.interface, interface.c_str(), sizeof(desc.interface) - 1);
 
     desc.platform = platform;
     desc.protocol = protocol;
@@ -76,9 +79,10 @@ std::string DeviceInfo::getMxId() const {
 }
 
 std::string DeviceInfo::toString() const {
-    return fmt::format("DeviceInfo(name={}, mxid={}, {}, {}, {}, {})",
+    return fmt::format("DeviceInfo(name={}, mxid={}, interface={}, {}, {}, {}, {})",
                        name,
                        mxid,
+                       interface,
                        XLinkDeviceStateToStr(state),
                        XLinkProtocolToStr(protocol),
                        XLinkPlatformToStr(platform),
@@ -109,21 +113,23 @@ constexpr std::chrono::milliseconds XLinkConnection::WAIT_FOR_BOOTUP_TIMEOUT;
 constexpr std::chrono::milliseconds XLinkConnection::WAIT_FOR_CONNECT_TIMEOUT;
 constexpr std::chrono::milliseconds XLinkConnection::POLLING_DELAY_TIME;
 
-std::vector<DeviceInfo> XLinkConnection::getAllConnectedDevices(XLinkDeviceState_t state, bool skipInvalidDevices) {
+std::vector<DeviceInfo> XLinkConnection::getAllConnectedDevices(XLinkDeviceState_t state, bool skipInvalidDevices, std::string interface) {
     initialize();
 
     std::vector<DeviceInfo> devices;
 
     unsigned int numdev = 0;
     std::array<deviceDesc_t, 32> deviceDescAll = {};
-    deviceDesc_t suitableDevice = {};
-    suitableDevice.protocol = getDefaultProtocol();
-    suitableDevice.platform = X_LINK_ANY_PLATFORM;
-    suitableDevice.state = state;
+    DeviceInfo devReq = {};
+    devReq.protocol = getDefaultProtocol();
+    devReq.platform = X_LINK_ANY_PLATFORM;
+    devReq.interface = interface;
+    devReq.state = state;
+
 
     auto allowedDeviceIds = utility::getEnv("DEPTHAI_DEVICE_MXID_LIST");
 
-    auto status = XLinkFindAllSuitableDevices(suitableDevice, deviceDescAll.data(), static_cast<unsigned int>(deviceDescAll.size()), &numdev);
+    auto status = XLinkFindAllSuitableDevices(devReq.getXLinkDeviceDesc(), deviceDescAll.data(), static_cast<unsigned int>(deviceDescAll.size()), &numdev);
     if(status != X_LINK_SUCCESS) throw std::runtime_error("Couldn't retrieve all connected devices");
 
     for(unsigned i = 0; i < numdev; i++) {
@@ -152,7 +158,7 @@ std::vector<DeviceInfo> XLinkConnection::getAllConnectedDevices(XLinkDeviceState
     return devices;
 }
 
-std::tuple<bool, DeviceInfo> XLinkConnection::getFirstDevice(XLinkDeviceState_t state, bool skipInvalidDevice) {
+std::tuple<bool, DeviceInfo> XLinkConnection::getFirstDevice(XLinkDeviceState_t state, bool skipInvalidDevice, std::string interface) {
     initialize();
 
     DeviceInfo devReq = {};
@@ -160,6 +166,7 @@ std::tuple<bool, DeviceInfo> XLinkConnection::getFirstDevice(XLinkDeviceState_t 
     devReq.platform = X_LINK_ANY_PLATFORM;
     devReq.name = "";
     devReq.mxid = "";
+    devReq.interface = interface;
     devReq.state = state;
 
     deviceDesc_t desc = {};
@@ -372,6 +379,7 @@ bool XLinkConnection::bootAvailableDevice(const deviceDesc_t& deviceToBoot, std:
     return status == X_LINK_SUCCESS;
 }
 
+// TODO(koosha) - any updates here?
 void XLinkConnection::initDevice(const DeviceInfo& deviceToInit, XLinkDeviceState_t expectedState) {
     assert(deviceLinkId == -1);
 

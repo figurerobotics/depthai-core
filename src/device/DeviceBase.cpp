@@ -202,9 +202,9 @@ std::tuple<bool, DeviceInfo> DeviceBase::getAnyAvailableDevice() {
 // static api
 
 // First tries to find UNBOOTED device, then BOOTLOADER device
-std::tuple<bool, DeviceInfo> DeviceBase::getFirstAvailableDevice(bool skipInvalidDevice) {
+std::tuple<bool, DeviceInfo> DeviceBase::getFirstAvailableDevice(bool skipInvalidDevice, std::string interface) {
     // Get all connected devices
-    auto devices = XLinkConnection::getAllConnectedDevices(X_LINK_ANY_STATE, skipInvalidDevice);
+    auto devices = XLinkConnection::getAllConnectedDevices(X_LINK_ANY_STATE, skipInvalidDevice, interface);
     // Search order - first unbooted, then bootloader and last flash booted
     for(auto searchState : {X_LINK_UNBOOTED, X_LINK_BOOTLOADER, X_LINK_FLASH_BOOTED}) {
         for(const auto& device : devices) {
@@ -217,9 +217,9 @@ std::tuple<bool, DeviceInfo> DeviceBase::getFirstAvailableDevice(bool skipInvali
 }
 
 // Returns all devices which aren't already booted
-std::vector<DeviceInfo> DeviceBase::getAllAvailableDevices() {
+std::vector<DeviceInfo> DeviceBase::getAllAvailableDevices(std::string interface) {
     std::vector<DeviceInfo> availableDevices;
-    auto connectedDevices = XLinkConnection::getAllConnectedDevices();
+    auto connectedDevices = XLinkConnection::getAllConnectedDevices(X_LINK_ANY_STATE, true, interface);
     for(const auto& d : connectedDevices) {
         if(d.state != X_LINK_BOOTED) availableDevices.push_back(d);
     }
@@ -227,8 +227,8 @@ std::vector<DeviceInfo> DeviceBase::getAllAvailableDevices() {
 }
 
 // Returns all devices, also the ones that are already booted
-std::vector<DeviceInfo> DeviceBase::getAllConnectedDevices() {
-    return XLinkConnection::getAllConnectedDevices();
+std::vector<DeviceInfo> DeviceBase::getAllConnectedDevices(std::string interface) {
+    return XLinkConnection::getAllConnectedDevices(X_LINK_ANY_STATE, true, interface);
 }
 
 // First tries to find UNBOOTED device with mxId, then BOOTLOADER device with mxId
