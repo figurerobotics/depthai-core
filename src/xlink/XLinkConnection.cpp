@@ -379,7 +379,6 @@ bool XLinkConnection::bootAvailableDevice(const deviceDesc_t& deviceToBoot, std:
     return status == X_LINK_SUCCESS;
 }
 
-// TODO(koosha) - any updates here?
 void XLinkConnection::initDevice(const DeviceInfo& deviceToInit, XLinkDeviceState_t expectedState) {
     assert(deviceLinkId == -1);
 
@@ -484,6 +483,7 @@ void XLinkConnection::initDevice(const DeviceInfo& deviceToInit, XLinkDeviceStat
         auto desc = lastDeviceInfo.getXLinkDeviceDesc();
         connectionHandler.devicePath = desc.name;
         connectionHandler.protocol = lastDeviceInfo.protocol;
+        connectionHandler.interface = lastDeviceInfo.interface.c_str();
 
         auto tstart = steady_clock::now();
         do {
