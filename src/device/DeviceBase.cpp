@@ -293,7 +293,7 @@ void DeviceBase::Impl::setLogLevel(LogLevel level) {
     // Converts LogLevel to spdlog and reconfigures logger level
     auto spdlogLevel = logLevelToSpdlogLevel(level, spdlog::level::warn);
     // Set level for all configured sinks
-    logger.set_level(spdlogLevel);
+    logger.set_level(spdlogLevel);  // koosha: commenting this line since it interferes with our repo's logging
 }
 
 LogLevel DeviceBase::Impl::getLogLevel() {
